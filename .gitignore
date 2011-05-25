@@ -1,6 +1,3 @@
-*.swp
-main.c
-main.h
-*.o
-*.out
-libmap
+*/*.swp
+build/*
+src/main.*
