@@ -1,4 +1,6 @@
 *.swp
 main.c
 main.h
-
+*.o
+*.out
+libmap
