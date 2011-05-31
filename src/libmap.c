@@ -151,38 +151,55 @@ int libmap_rbegin(map *m,map_iter *mi){
 	return ret;
 }
 
-int libmap_next(map_iter *mi){
-	if(mi->direction==0){
-		mi->direction=1;
-		int ret=libmap_prev(mi);
-		mi->direction=0;
-		return ret;
+int libmap_node_next(libmap_node *node,libmap_node **next){
+	if(node==NULL || next==NULL){
+		return 0;
 	}
-	libmap_node *node=mi->node;
-	if(node->right!=NULL){//go to the right...
-		node=node->right;
-		while(node->left!=NULL){//then as far to the left as we can.
-			node=node->left;
+	*next=NULL;
+	libmap_node *temp=node;
+	if(temp->right!=NULL){//go to the right...
+		temp=temp->right;
+		while(temp->left!=NULL){//then as far to the left as we can.
+			temp=temp->left;
 		}
-		mi->node=node;
+		*next=temp;
 		return 1;
 	}
 
-	if(node->parent!=NULL && node->parent->left==node){//if we are a left-child, go to our parent
-		node=node->parent;
-		mi->node=node;
+	if(temp->parent!=NULL && temp->parent->left==temp){//if we are a left-child, go to our parent
+		*next=temp->parent;
 		return 1;
 	}else{//re are a right-child
-		while(node->parent!=NULL && node->parent->right==node){
-			node=node->parent;
+		while(temp->parent!=NULL && temp->parent->right==temp){
+			temp=temp->parent;
 		}
-		if(node->parent!=NULL){
-			node=node->parent;
-			mi->node=node;
+		if(temp->parent!=NULL){
+			*next=temp->parent;
 			return 1;
 		}else{
+			temp=NULL;
 			return 0;
 		}
+	}
+	temp=NULL;
+	return 0;
+}
+
+
+int libmap_next(map_iter *mi){
+	libmap_node *next;
+	if(mi->direction==1){
+		if(libmap_node_next(mi->node,&next)){
+			mi->node=next;
+			return 1;
+		}
+		return 0;
+	}else{
+		if(libmap_node_prev(mi->node,&next)){
+			mi->node=next;
+			return 1;
+		}
+		return 0;
 	}
 
 	return 0;
@@ -191,38 +208,60 @@ int libmap_next(map_iter *mi){
 
 
 
-int libmap_prev(map_iter *mi){
-	if(mi->direction==0){
-		mi->direction=1;
-		int ret=libmap_next(mi);
-		mi->direction=0;
-		return ret;
+
+int libmap_node_prev(libmap_node *node,libmap_node **prev){
+	if(node==NULL || prev==NULL){
+		return 0;
 	}
-	libmap_node *node=mi->node;
-	if(node->left!=NULL){//go to the left...
-		node=node->left;
-		while(node->right!=NULL){//then as far to the right as we can.
-			node=node->right;
+	*prev=NULL;
+	libmap_node *temp=node;
+	if(temp->left!=NULL){//go to the left...
+		temp=temp->left;
+		while(temp->right!=NULL){//then as far to the right as we can.
+			temp=temp->right;
 		}
-		mi->node=node;
+		*prev=temp;
 		return 1;
 	}
 
-	if(node->parent!=NULL && node->parent->right==node){//if we are a right-child, go to our parent
-		node=node->parent;
-		mi->node=node;
+	if(temp->parent!=NULL && temp->parent->right==temp){//if we are a right-child, go to our parent
+		*prev=temp->parent;
 		return 1;
 	}else{//re are a left-child
-		while(node->parent!=NULL && node->parent->left==node){
-			node=node->parent;
+		while(temp->parent!=NULL && temp->parent->left==temp){
+			temp=temp->parent;
 		}
-		if(node->parent!=NULL){
-			node=node->parent;
-			mi->node=node;
+		if(temp->parent!=NULL){
+			*prev=temp->parent;
 			return 1;
 		}else{
+			temp=NULL;
 			return 0;
 		}
+	}
+	temp=NULL;
+	return 0;
+}
+
+
+
+
+
+
+int libmap_prev(map_iter *mi){
+	libmap_node *prev;
+	if(mi->direction==1){
+		if(libmap_node_prev(mi->node,&prev)){
+			mi->node=prev;
+			return 1;
+		}
+		return 0;
+	}else{
+		if(libmap_node_next(mi->node,&prev)){
+			mi->node=prev;
+			return 1;
+		}
+		return 0;
 	}
 
 	return 0;
@@ -262,7 +301,9 @@ int libmap_get(map *m,void *key,int (*comparator)(const void *,const void *),voi
 				}
 				break;
 			default:
-				*value=node->value;
+				if(value!=NULL){
+					*value=node->value;
+				}
 				return 1;
 		}
 	}
@@ -291,13 +332,37 @@ int libmap_set(map *m,void *key,void *value,int (*comparator)(const void *,const
 				}
 				break;
 			default:
-				*oldvalue=node->value;
+				if(oldvalue!=NULL){
+					*oldvalue=node->value;
+				}
 				node->value=value;
 				return 1;
 		}
 	}
 	return 0;
 }
+
+
+//int libmap_remove(map *m,void *key,int (*comparator)(const void *,const void *),void **oldkey,void **oldvalue){
+//
+//}
+
+//int libmap_node_remove(libmap_node *node,int direction){
+//
+//	
+//
+//}
+//
+//
+//int libmap_remove(map_iter *mi,void **oldkey,void **oldvalue){
+//	*oldkey=mi->node->key;
+//	*oldvalue=mi->node->value;
+//
+//	return libmap_node_remove(mi->node,mi->direction);
+//
+//}
+
+
 
 
 
