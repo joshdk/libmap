@@ -119,8 +119,8 @@ int libmap_begin(map *m,map_iter *mi){
 		temp=temp->left;
 	}
 	mi->node=temp;
+	mi->direction=1;//forwards
 	return 1;
-
 }
 
 
@@ -133,14 +133,31 @@ int libmap_end(map *m,map_iter *mi){
 		temp=temp->right;
 	}
 	mi->node=temp;
+	mi->direction=1;//forwards
 	return 1;
 
 }
 
 
+int libmap_rend(map *m,map_iter *mi){
+	int ret=libmap_begin(m,mi);
+	mi->direction=0;//backwards
+	return ret;
+}
 
+int libmap_rbegin(map *m,map_iter *mi){
+	int ret=libmap_end(m,mi);
+	mi->direction=0;//backwards
+	return ret;
+}
 
 int libmap_next(map_iter *mi){
+	if(mi->direction==0){
+		mi->direction=1;
+		int ret=libmap_prev(mi);
+		mi->direction=0;
+		return ret;
+	}
 	libmap_node *node=mi->node;
 	if(node->right!=NULL){//go to the right...
 		node=node->right;
@@ -175,6 +192,12 @@ int libmap_next(map_iter *mi){
 
 
 int libmap_prev(map_iter *mi){
+	if(mi->direction==0){
+		mi->direction=1;
+		int ret=libmap_next(mi);
+		mi->direction=0;
+		return ret;
+	}
 	libmap_node *node=mi->node;
 	if(node->left!=NULL){//go to the left...
 		node=node->left;
@@ -219,60 +242,61 @@ void *libmap_value(map_iter *mi){
 
 
 
-void *libmap_get(map *m,void *key,int (*comparator)(const void *,const void *)){
-	if(m==NULL || key==NULL || m->root==NULL)return NULL;
+int libmap_get(map *m,void *key,int (*comparator)(const void *,const void *),void **value){
+	if(m==NULL || key==NULL || m->root==NULL)return 0;
 	libmap_node *node=m->root;
 	while(1){
 		switch(comparator(key,node->key)){
 			case -1:
 				if(node->left==NULL){
-					return NULL;
+					return 0;
 				}else{
 					node=node->left;
 				}
 				break;
 			case 1:
 				if(node->right==NULL){
-					return NULL;
+					return 0;
 				}else{
 					node=node->right;
 				}
 				break;
 			default:
-				return node->value;
+				*value=node->value;
+				return 1;
 		}
 	}
-	return NULL;
+	return 0;
 }
 
 
-void *libmap_set(map *m,void *key,void *value,int (*comparator)(const void *,const void *)){
-	if(m==NULL || key==NULL || m->root==NULL)return NULL;
+int libmap_set(map *m,void *key,void *value,int (*comparator)(const void *,const void *),void **oldvalue){
+	if(m==NULL || key==NULL || m->root==NULL)return 0;
 	libmap_node *node=m->root;
 	void *temp=NULL;
 	while(1){
 		switch(comparator(key,node->key)){
 			case -1:
 				if(node->left==NULL){
-					return NULL;
+					return 0;
 				}else{
 					node=node->left;
 				}
 				break;
 			case 1:
 				if(node->right==NULL){
-					return NULL;
+					return 0;
 				}else{
 					node=node->right;
 				}
 				break;
 			default:
-				temp=node->value;
+				*oldvalue=node->value;
 				node->value=value;
-				return temp;
+				return 1;
 		}
 	}
-	return NULL;
+	return 0;
 }
 
 
