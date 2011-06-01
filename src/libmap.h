@@ -7,17 +7,19 @@ typedef struct{
 	struct libmap_node *root;
 }map;
 
-typedef struct{
-	struct libmap_node *node;
-	int direction;
-	int constant;
-}map_iter;
-
 typedef struct libmap_node{
 	void *key;
 	void *value;
 	struct libmap_node *left,*right,*parent;
 }libmap_node;
+
+typedef struct{
+//	struct libmap_node *node;
+	libmap_node *prev,*node,*next;
+	int direction;
+	int constant;
+}map_iter;
+
 
 
 //int libmap_create(map *);

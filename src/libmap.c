@@ -127,6 +127,8 @@ int libmap_begin(map *m,map_iter *mi){
 		temp=temp->left;
 	}
 	mi->node=temp;
+	_libmap_node_next(mi->node,&(mi->next));
+	_libmap_node_prev(mi->node,&(mi->prev));
 	mi->direction=1;//forwards
 	return 1;
 }
@@ -141,6 +143,8 @@ int libmap_end(map *m,map_iter *mi){
 		temp=temp->right;
 	}
 	mi->node=temp;
+	_libmap_node_next(mi->node,&(mi->next));
+	_libmap_node_prev(mi->node,&(mi->prev));
 	mi->direction=1;//forwards
 	return 1;
 
@@ -149,12 +153,20 @@ int libmap_end(map *m,map_iter *mi){
 
 int libmap_rend(map *m,map_iter *mi){
 	int ret=libmap_begin(m,mi);
+	libmap_node *temp=NULL;
+	temp=mi->prev;
+	mi->prev=mi->next;
+	mi->next=temp;
 	mi->direction=0;//backwards
 	return ret;
 }
 
 int libmap_rbegin(map *m,map_iter *mi){
 	int ret=libmap_end(m,mi);
+	libmap_node *temp=NULL;
+	temp=mi->prev;
+	mi->prev=mi->next;
+	mi->next=temp;
 	mi->direction=0;//backwards
 	return ret;
 }
@@ -196,18 +208,23 @@ int _libmap_node_next(libmap_node *node,libmap_node **next){
 
 int libmap_next(map_iter *mi){
 	libmap_node *next;
-	if(mi->direction==1){
-		if(_libmap_node_next(mi->node,&next)){
-			mi->node=next;
+	mi->prev=mi->node;
+	mi->node=mi->next;
+	mi->next=NULL;
+	if(mi->direction==1){//normal iterator
+		if(mi->node==NULL){//no more nodes...
+			return 0;
+		}else{
+			_libmap_node_next(mi->node,&(mi->next));
 			return 1;
 		}
-		return 0;
-	}else{
-		if(_libmap_node_prev(mi->node,&next)){
-			mi->node=next;
+	}else{//reverse iterator
+		if(mi->node==NULL){//no more nodes...
+			return 0;
+		}else{
+			_libmap_node_prev(mi->node,&(mi->next));
 			return 1;
 		}
-		return 0;
 	}
 
 	return 0;
@@ -258,22 +275,29 @@ int _libmap_node_prev(libmap_node *node,libmap_node **prev){
 
 int libmap_prev(map_iter *mi){
 	libmap_node *prev;
-	if(mi->direction==1){
-		if(_libmap_node_prev(mi->node,&prev)){
-			mi->node=prev;
+	mi->next=mi->node;
+	mi->node=mi->prev;
+	mi->prev=NULL;
+	if(mi->direction==1){//normal iterator
+		if(mi->node==NULL){//no more nodes...
+			return 0;
+		}else{
+			_libmap_node_prev(mi->node,&(mi->prev));
 			return 1;
 		}
-		return 0;
-	}else{
-		if(_libmap_node_next(mi->node,&prev)){
-			mi->node=prev;
+	}else{//reverse iterator
+		if(mi->node==NULL){//no more nodes...
+			return 0;
+		}else{
+			_libmap_node_next(mi->node,&(mi->prev));
 			return 1;
 		}
-		return 0;
 	}
 
 	return 0;
 }
+
+
 
 
 
@@ -355,77 +379,77 @@ int libmap_set(map *m,void *key,void *value,int (*comparator)(const void *,const
 //
 //}
 
-int _libmap_node_remove(libmap_node *node,int direction){
-	printf("removing [%s]:[%s]\n",node->key,node->value);
-
-	if(node->left!=NULL && node->right!=NULL){//we have 2 children
-		puts("2 children");
-		libmap_node *prev;
-		if(direction==1){
-			_libmap_node_prev(node,&prev);
-		}else{
-			_libmap_node_next(node,&prev);
-		}
-
-		printf("shifting [%s]:[%s]\n",prev->key,prev->value);
-		node->key=prev->key;
-		node->value=prev->value;
-		_libmap_node_remove(prev,direction);//shift the *previous* node
-		
-		
-	}else if(node->left==NULL && node->right==NULL){//we have no children
-		puts("0 children");
-		if(node->parent!=NULL){
-			if(node->parent->left==node){
-				node->parent->left=NULL;
-			}else{
-				node->parent->right=NULL;
-			}
-		}
-		_libmap_node_destroy(node);//we are at the end of a chain, destroy ourselves
-		
-	}else{//we have one child
-		puts("1 children");
-		if(node->left!=NULL){
-			puts("left child");
-			printf("shifting [%s]:[%s]\n",node->left->key,node->left->value);
-			node->key=node->left->key;
-			node->value=node->left->value;
-			_libmap_node_remove(node->left,direction);//shift the left node
-			
-		}else{
-			puts("right child");
-			printf("shifting [%s]:[%s]\n",node->right->key,node->right->value);
-			node->key=node->right->key;
-			node->value=node->right->value;
-			_libmap_node_remove(node->right,direction);//shift the right node
-
-		}
-
-
-	}
-
-
-
+//int _libmap_node_remove(libmap_node *node,int direction){
+//	printf("removing [%s]:[%s]\n",node->key,node->value);
+//
+//	if(node->left!=NULL && node->right!=NULL){//we have 2 children
+//		puts("2 children");
+//		libmap_node *prev;
+//		if(direction==1){
+//			_libmap_node_prev(node,&prev);
+//		}else{
+//			_libmap_node_next(node,&prev);
+//		}
+//
+//		printf("shifting [%s]:[%s]\n",prev->key,prev->value);
+//		node->key=prev->key;
+//		node->value=prev->value;
+//		_libmap_node_remove(prev,direction);//shift the *previous* node
+//		
+//		
+//	}else if(node->left==NULL && node->right==NULL){//we have no children
+//		puts("0 children");
+//		if(node->parent!=NULL){
+//			if(node->parent->left==node){
+//				node->parent->left=NULL;
+//			}else{
+//				node->parent->right=NULL;
+//			}
+//		}
+//		_libmap_node_destroy(node);//we are at the end of a chain, destroy ourselves
+//		
+//	}else{//we have one child
+//		puts("1 children");
+//		if(node->left!=NULL){
+//			puts("left child");
+//			printf("shifting [%s]:[%s]\n",node->left->key,node->left->value);
+//			node->key=node->left->key;
+//			node->value=node->left->value;
+//			_libmap_node_remove(node->left,direction);//shift the left node
+//			
+//		}else{
+//			puts("right child");
+//			printf("shifting [%s]:[%s]\n",node->right->key,node->right->value);
+//			node->key=node->right->key;
+//			node->value=node->right->value;
+//			_libmap_node_remove(node->right,direction);//shift the right node
+//
+//		}
 //
 //
-//	node->key=prev->key;
-//	node->value=prev->value;
-//	_libmap_node_remove(prev,direction);
+//	}
+//
+//
+//
+////
+////
+////	node->key=prev->key;
+////	node->value=prev->value;
+////	_libmap_node_remove(prev,direction);
+//
+//
+//	return 0;
+//
+//}
 
 
-	return 0;
-
-}
-
-
-int libmap_remove(map_iter *mi,void **oldkey,void **oldvalue){
-	*oldkey=mi->node->key;
-	*oldvalue=mi->node->value;
-
-	return _libmap_node_remove(mi->node,mi->direction);
-
-}
+//int libmap_remove(map_iter *mi,void **oldkey,void **oldvalue){
+//	*oldkey=mi->node->key;
+//	*oldvalue=mi->node->value;
+//
+//	return _libmap_node_remove(mi->node,mi->direction);
+//
+//}
 
 
 
