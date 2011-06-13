@@ -47,6 +47,7 @@
 	int libmap_iter_end(libmap_map *,libmap_iter *);
 	int libmap_iter_rend(libmap_map *,libmap_iter *);
 	int libmap_iter_next(libmap_iter *);
+	int libmap_iter_prev(libmap_iter *);
 	
 	int libmap_iter_key(libmap_iter *,void **);
 	int libmap_iter_get(libmap_iter *,void **);
