@@ -2,43 +2,56 @@
 #define _LIBMAP_H_
 
 
-typedef struct{
-	int size;
-	struct libmap_node *root;
-}map;
-
-typedef struct libmap_node{
-	void *key;
-	void *value;
-	struct libmap_node *left,*right,*parent;
-}libmap_node;
-
-typedef struct{
-//	struct libmap_node *node;
-	libmap_node *prev,*node,*next;
-	map *m;
-	int direction;
-	int constant;
-}map_iter;
-
-
-
-//int libmap_create(map *);
-//int libmap_size(map *);
-//int libmap_node_add(libmap_node *,libmap_node *,int (*)(const void *,const void *));
-//int libmap_add(map *,void *,void *,int (*)(const void *,const void *));
-//void libmap_node_destroy(libmap_node *);
-//void libmap_destroy(map *);
-//int libmap_begin(map *,map_iter *);
-//int libmap_end(map *,map_iter *);
-//int libmap_next(map_iter *);
-//int libmap_prev(map_iter *);
-//void *libmap_key(map_iter *);
-//void *libmap_value(map_iter *);
-//void *libmap_get(map *,void *,int (*)(const void *,const void *));
-//void *libmap_set(map *,void *,void *,int (*)(const void *,const void *));
+//data types
+	typedef struct{
+		int size;
+		struct libmap_node *root;
+	}libmap_map;
+	
+	typedef struct libmap_node{
+		void *key;
+		void *value;
+		struct libmap_node *left,*right,*parent;
+	}libmap_node;
+	
+	typedef struct{
+		libmap_node *prev,*node,*next;
+		libmap_map *m;
+		int direction;
+		int constant;
+	}libmap_iter;
 
 
+//private internals
+	int _libmap_node_add(libmap_node *,libmap_node *,int (*)(const void *,const void *));
+	int _libmap_node_destroy(libmap_node **);
+	int _libmap_node_next(libmap_node *,libmap_node **);
+	int _libmap_node_prev(libmap_node *,libmap_node **);
+	int _libmap_node_remove(libmap_node *,int,libmap_node **);
+
+
+//public interfaces
+	int libmap_create(libmap_map *);
+	int libmap_destroy(libmap_map *);
+	
+	int libmap_add(libmap_map *,void *,void *,int (*)(const void *,const void *));
+	int libmap_remove(libmap_map *,void *,int (*)(const void *,const void *),void **,void **);
+	
+	int libmap_get(libmap_map *,void *,int (*)(const void *,const void *),void **);
+	int libmap_set(libmap_map *,void *,void *,int (*)(const void *,const void *),void **);
+	
+	int libmap_size(libmap_map *);
+	
+	int libmap_iter_begin(libmap_map *,libmap_iter *);
+	int libmap_iter_rbegin(libmap_map *,libmap_iter *);
+	int libmap_iter_end(libmap_map *,libmap_iter *);
+	int libmap_iter_rend(libmap_map *,libmap_iter *);
+	int libmap_iter_next(libmap_iter *);
+	
+	int libmap_iter_key(libmap_iter *,void **);
+	int libmap_iter_get(libmap_iter *,void **);
+	int libmap_iter_set(libmap_iter *,void *,void **);
+	int libmap_iter_remove(libmap_iter *,void **,void **);
 
 
 #endif
