@@ -286,29 +286,31 @@ int _libmap_node_prev(libmap_node *node,libmap_node **prev){
 
 
 
-//int libmap_prev(libmap_iter *mi){
-//	libmap_node *prev;
-//	mi->next=mi->node;
-//	mi->node=mi->prev;
-//	mi->prev=NULL;
-//	if(mi->direction==1){//normal iterator
-//		if(mi->node==NULL){//no more nodes...
-//			return 0;
-//		}else{
-//			_libmap_node_prev(mi->node,&(mi->prev));
-//			return 1;
-//		}
-//	}else{//reverse iterator
-//		if(mi->node==NULL){//no more nodes...
-//			return 0;
-//		}else{
-//			_libmap_node_next(mi->node,&(mi->prev));
-//			return 1;
-//		}
-//	}
-//
-//	return 0;
-//}
+int libmap_iter_prev(libmap_iter *mi){
+	mi->next=mi->node;
+	mi->node=mi->prev;
+	mi->prev=NULL;
+	if(mi->direction==1){//normal iterator
+		if(mi->node==NULL){//no more nodes...
+			return 0;
+		}else{
+			_libmap_node_prev(mi->node,&(mi->prev));
+			return 1;
+		}
+	}else{//reverse iterator
+		if(mi->node==NULL){//no more nodes...
+			return 0;
+		}else{
+			_libmap_node_next(mi->node,&(mi->prev));
+			return 1;
+		}
+	}
+
+	return 0;
+}
+
+
+
 
 
 
