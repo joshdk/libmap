@@ -16,6 +16,7 @@ typedef struct libmap_node{
 typedef struct{
 //	struct libmap_node *node;
 	libmap_node *prev,*node,*next;
+	map *m;
 	int direction;
 	int constant;
 }map_iter;
